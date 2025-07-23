@@ -1,0 +1,59 @@
+/* Custom navbar background color */
+.navbar-default {
+  background-color: #white !important;
+  border-color: #34495e !important;
+}
+
+/* Navbar brand (logo and title) styling */
+.navbar-brand {
+  color: #black !important;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.navbar-brand:hover {
+  color: #ecf0f1 !important;
+}
+
+/* Navbar links styling */
+.navbar-nav > li > a {
+  color: #black !important;
+  font-weight: 500;
+}
+
+.navbar-nav > li > a:hover {
+  color: #3498db !important;
+  background-color: transparent !important;
+}
+
+/* Active tab styling */
+.navbar-nav > .active > a {
+  background-color: #34495e !important;
+  color: #ffffff !important;
+}
+
+.navbar-nav > .active > a:hover {
+  background-color: #4a5f7a !important;
+  color: #ffffff !important;
+}
+
+/* Logo styling */
+.navbar-brand img {
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* Navbar height adjustment */
+.navbar {
+  min-height: 70px;
+}
+
+.navbar-nav > li > a {
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
+.navbar-brand {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
