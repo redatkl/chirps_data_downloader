@@ -14,7 +14,7 @@ source("global.R")
 ui <- navbarPage(
   title = div(
     img(src = "logo/logo.png", height = "60px"),
-    span("CHIRPS Data downloader")
+    span("CHIRPS Data Downloader")
   ),
   #selected = 'Geomonitoring',
   #collapsible = TRUE,
@@ -42,7 +42,7 @@ ui <- navbarPage(
   tabPanel(
     title = "Downloader",
     icon = icon("globe"),
-    download_ui("download")
+    downloader_ui("downloader")
   )
   
   
@@ -54,7 +54,7 @@ server <- function(input, output, session) {
   
   
   # We'll build this step by step
-  download_server("download")
+  downloader_server("downloader")
   
   
 }

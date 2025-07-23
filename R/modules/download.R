@@ -4,13 +4,31 @@
 
 download_ui <- function(id) {
   
-  tagList(
-    h2("Download CHIRPS Data"),
-    p("Select the parameters below to download CHIRPS data."),
+  ns <- NS(id)
+  
+  tagList(div(
+    style = "
+      position: fixed;
+      left: 0;
+      top: 90px;
+      width: 300px;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-right: 1px solid #dee2e6;
+      box-sizing: border-box;
+    ",
+    h2("Download CHIRPS Data", class = "title-config"),
+    p("Click on a point on the map and select the parameters below to download CHIRPS data."),
     
     # Input for selecting date range
     dateRangeInput("date_range", "Select Date Range:", 
                    start = Sys.Date() - 30, end = Sys.Date()),
+    
+    #Input for the temporal resolution
+    selectInput("temporal_resolution", "Select Temporal Resolution:", 
+                choices = c("Daily", "Monthly", "Yearly"), selected = "Daily"),
     
     # Input for selecting region
     selectInput("region", "Select Region:", 
@@ -18,6 +36,7 @@ download_ui <- function(id) {
     
     # Download button
     downloadButton("download_data", "Download Data")
+  )
   )
 }
 

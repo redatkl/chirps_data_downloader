@@ -54,6 +54,28 @@
 }
 
 .navbar-brand {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 5px 15px;
+  display: flex;
+  align-items: center;
+}
+
+
+
+/*///////////////////////////////*/
+
+.title-config {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+/*leaflet map styling */
+.leaflet-container {
+  position: fixed;
+  top: 90px;
+  left: 340px;
+  box-sizing: border-box;
+  border: 1px solid #34495e;
+  border-radius: 10px;
 }
