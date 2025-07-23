@@ -28,11 +28,7 @@ download_ui <- function(id) {
     
     #Input for the temporal resolution
     selectInput("temporal_resolution", "Select Temporal Resolution:", 
-                choices = c("Daily", "Monthly", "Yearly"), selected = "Daily"),
-    
-    # Input for selecting region
-    selectInput("region", "Select Region:", 
-                choices = c("Global", "Africa", "Asia", "Europe", "North America", "South America")),
+                choices = c("Daily", "Pentad", "Monthly"), selected = "Daily"),
     
     # Download button
     downloadButton("download_data", "Download Data")
