@@ -41,7 +41,7 @@ ui <- navbarPage(
   ),
   tabPanel(
     title = "Downloader",
-    icon = icon("globe"),
+    icon = icon("download"),
     downloader_ui("downloader")
   )
   

@@ -84,5 +84,6 @@ map_server <- function(id, map_data) {
     # Return the current clicked point
     return(clicked_point)
     
+    
   })
 }

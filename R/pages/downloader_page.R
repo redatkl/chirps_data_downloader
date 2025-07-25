@@ -16,7 +16,11 @@ source("R/modules/map.R")
   downloader_server <- function(id) {
     
     download_server("download")
-    map_server("map", map_data = NULL)  # Assuming map_data is defined elsewhere or passed as needed
     
+    
+    # Call the map module and capture its return value
+   map_server("map", map_data = NULL)
+    
+
     
   }
