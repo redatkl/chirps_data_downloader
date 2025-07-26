@@ -38,7 +38,7 @@ ui <- navbarPage(
     value = "home",
     icon = icon("home"),
     # Placeholder for home content
-    h2("Welcome to chrips data downloader")
+    homeUI("home")
   ),
   tabPanel(
     title = "Downloader",
@@ -56,6 +56,9 @@ server <- function(input, output, session) {
   
   # We'll build this step by step
   downloader_server("downloader")
+  
+  # home server
+  homeServer("home")
   
   
 }
