@@ -272,3 +272,107 @@ download_monthly_chirps <- function(bbox, dates) {
   }
 }
 
+
+######################## extract lat and lon data
+#' Extract pixel values at specific coordinates from CHIRPS raster stack
+#' @param raster_stack SpatRaster stack from CHIRPS download functions
+#' @param lat Latitude of the point
+#' @param lng Longitude of the point
+#' @param temporal_resolution Temporal resolution used ("Daily", "Pentad", or "Monthly")
+#' @return Data frame with dates and precipitation values
+extract_chirps_values <- function(raster_stack, lat, lng, temporal_resolution) {
+  
+  if (is.null(raster_stack)) {
+    message("No raster stack provided")
+    return(NULL)
+  }
+  
+  tryCatch({
+    # Create point from coordinates
+    point <- vect(cbind(lng, lat), crs = crs(raster_stack))
+    
+    # Extract values at the point for all layers
+    extracted_values <- extract(raster_stack, point)
+    
+    # Get layer names (dates)
+    layer_names <- names(raster_stack)
+    
+    # Create data frame
+    if (temporal_resolution == "Daily") {
+      df <- data.frame(
+        date = as.Date(layer_names),
+        precipitation_mm = as.numeric(extracted_values[1, -1]), # Remove ID column
+        stringsAsFactors = FALSE
+      )
+    } else if (temporal_resolution == "Pentad") {
+      # Parse pentad names (format: "YYYY-MM-DD_pentadX")
+      dates <- sapply(layer_names, function(x) {
+        date_part <- strsplit(x, "_")[[1]][1]
+        as.Date(date_part)
+      })
+      
+      pentads <- sapply(layer_names, function(x) {
+        pentad_part <- strsplit(x, "_pentad")[[1]][2]
+        as.numeric(pentad_part)
+      })
+      
+      df <- data.frame(
+        date = as.Date(dates, origin = "1970-01-01"),
+        pentad = pentads,
+        precipitation_mm = as.numeric(extracted_values[1, -1]),
+        stringsAsFactors = FALSE
+      )
+    } else if (temporal_resolution == "Monthly") {
+      # Parse monthly names (format: "YYYY-MM")
+      dates <- as.Date(paste0(layer_names, "-01"))
+      
+      df <- data.frame(
+        date = dates,
+        precipitation_mm = as.numeric(extracted_values[1, -1]),
+        stringsAsFactors = FALSE
+      )
+    }
+    
+    # Remove rows with NA values
+    df <- df[!is.na(df$precipitation_mm), ]
+    
+    # Add coordinate information
+    df$latitude <- lat
+    df$longitude <- lng
+    
+    # Sort by date
+    df <- df[order(df$date), ]
+    
+    return(df)
+    
+  }, error = function(e) {
+    message("Error extracting pixel values: ", e$message)
+    return(NULL)
+  })
+}
+
+#' Complete workflow: Download CHIRPS data and extract values at point
+#' @param lat Latitude of the point
+#' @param lng Longitude of the point
+#' @param start_date Start date for data download
+#' @param end_date End date for data download
+#' @param temporal_resolution Either "Daily", "Pentad", or "Monthly"
+#' @param buffer_size Buffer size around point in degrees (default: 0.05)
+#' @return Data frame with dates and precipitation values at the specific point
+get_chirps_point_data <- function(lat, lng, start_date, end_date, temporal_resolution, buffer_size = 0.05) {
+  
+  # Download raster stack
+  message("Downloading CHIRPS data...")
+  raster_stack <- download_chirps_data(lat, lng, start_date, end_date, temporal_resolution, buffer_size)
+  
+  if (is.null(raster_stack)) {
+    message("Failed to download raster data")
+    return(NULL)
+  }
+  
+  # Extract values at point
+  message("Extracting values at coordinates...")
+  point_data <- extract_chirps_values(raster_stack, lat, lng, temporal_resolution)
+  
+  return(point_data)
+}

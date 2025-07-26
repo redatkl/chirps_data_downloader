@@ -15,11 +15,11 @@ source("R/modules/map.R")
 # server side of the page downloader
   downloader_server <- function(id) {
     
-    download_server("download")
+    download_server("download", clicked_point)
     
     
     # Call the map module and capture its return value
-   map_server("map", map_data = NULL)
+   clicked_point = map_server("map", map_data = NULL)
     
 
     

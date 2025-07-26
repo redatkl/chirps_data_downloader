@@ -44,11 +44,14 @@ download_ui <- function(id) {
 }
 
 # the page download server
-download_server <- function(id) {
+download_server <- function(id, clicked_point) {
   moduleServer(id, function(input, output, session) {
     
-    # Add a reactive value to store results
-    result_text <- reactiveVal("")
+    # Create a reactive value to store the terra object
+    terra_data <- reactiveVal()
+    
+    # store the current parameters in a reactive value
+    current_params <- reactiveVal()
     
     # Reactive expression to generate data based on inputs
     data_to_download <- reactive({
@@ -69,12 +72,34 @@ download_server <- function(id) {
       if (nrow(current_point) > 0) {
         lat <- current_point$lat[1]  # Get the first (or latest) lat
         lng <- current_point$lng[1]  # Get the first (or latest) lng
-      
-      # Run the custom function
-      new_result <- download_chirps_data(lat = lat, lng = lng)
-      result_text(new_result)
+        
+        lat <- as.numeric(lat)
+        lng <- as.numeric(lng)
+        
+        # Get the selected date range
+        start_date <- input$date_range[1]  # Start date
+        end_date <- input$date_range[2]
+        
+        # get the temporal resolution
+        temporal_resolution = input$temporal_resolution
+        
+        # Store the parameters for later use
+        current_params(list(
+          lat = lat,
+          lng = lng,
+          temporal_resolution = temporal_resolution
+        ))
+        
+        # Run the custom function
+        new_result <- download_chirps_data(start_date = start_date, end_date = end_date,
+                                           temporal_resolution = temporal_resolution,
+                                           lat = lat, lng = lng, buffer_size = 0.5)
+        # Store the terra object in reactive value
+        terra_data(new_result)
       }
     })
+    
+    
     
     # Download handler
     output$download_data <- downloadHandler(
@@ -82,7 +107,23 @@ download_server <- function(id) {
         paste("chirps_data_", Sys.Date(), ".csv", sep = "")
       },
       content = function(file) {
-        write.csv(data_to_download(), file, row.names = FALSE)
+        
+        # Get the terra object and parameters
+        terra_obj <- terra_data()  # Call as function to get actual object
+        params <- current_params()
+        
+        data <- extract_chirps_values(
+          raster_stack = terra_obj,  # Use the actual terra object
+          lat = params$lat,
+          lng = params$lng,
+          temporal_resolution = params$temporal_resolution
+        )
+        if (!is.null(data)) {
+          write.csv(data, file, row.names = FALSE)
+        } else {
+          # Create empty file if no data
+          write.csv(data.frame(Message = "No data available"), file, row.names = FALSE)
+        }
       }
     )
   })
