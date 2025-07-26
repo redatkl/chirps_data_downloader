@@ -22,6 +22,7 @@ ui <- navbarPage(
   header = tagList(
     shinyjs::useShinyjs(),
     includeCSS("www/custom.css"),
+    includeScript("www/custom.js"),
     # Add favicon
     tags$head(
       tags$link(rel = "icon", type = "image/ico", href = "favicon/favicon.ico"),

@@ -99,7 +99,7 @@ generate_pentad_dates <- function(start_date, end_date) {
     current_date <- current_date + 1
   }
   
-  return(as.Date(dates, origin = "1980-01-01"))
+  return(as.Date(dates, origin = "1970-01-01"))
 }
 
 #' Download daily CHIRPS data

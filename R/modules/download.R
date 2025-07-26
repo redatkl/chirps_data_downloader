@@ -30,13 +30,15 @@ download_ui <- function(id) {
     selectInput(ns("temporal_resolution"), "Select Temporal Resolution:", 
                 choices = c("Daily", "Pentad", "Monthly"), selected = "Daily"),
     
-    # Region input (adding this since it's referenced in server)
-    #textInput(ns("region"), "Region:", value = "Default Region"),
-    
     # Button to start downloading (already has ns())
     actionButton(ns("fetch_button"), "Prepare Data", class = "btn btn-primary"),
     
     br(),br(),
+    
+    # Simple status message
+    verbatimTextOutput(ns("status_message")),
+    
+    br(),
     
     # Download button (with ns())
     downloadButton(ns("download_data"), "Download Data")
@@ -53,16 +55,11 @@ download_server <- function(id, clicked_point) {
     # store the current parameters in a reactive value
     current_params <- reactiveVal()
     
-    # Reactive expression to generate data based on inputs
-    data_to_download <- reactive({
-      # Simulate data generation based on input parameters
-      data.frame(
-        Date = seq(input$date_range[1], input$date_range[2], by = "day"),
-        Region = input$region,
-        Temporal_Resolution = input$temporal_resolution,
-        Value = runif(length(seq(input$date_range[1], input$date_range[2], by = "day")), 0, 100)
-      )
-    })
+    # Status message reactive
+    status_msg <- reactiveVal("")
+    
+    # Data ready flag
+    data_ready <- reactiveVal(FALSE)
     
     # Observer for button click
     observeEvent(input$fetch_button, {
@@ -70,6 +67,10 @@ download_server <- function(id, clicked_point) {
       current_point <- clicked_point()
       
       if (nrow(current_point) > 0) {
+        # Update status
+        status_msg("Status: Preparing data...")
+        data_ready(FALSE)
+        
         lat <- current_point$lat[1]  # Get the first (or latest) lat
         lng <- current_point$lng[1]  # Get the first (or latest) lng
         
@@ -81,7 +82,7 @@ download_server <- function(id, clicked_point) {
         end_date <- input$date_range[2]
         
         # get the temporal resolution
-        temporal_resolution = input$temporal_resolution
+        temporal_resolution <- input$temporal_resolution
         
         # Store the parameters for later use
         current_params(list(
@@ -90,16 +91,35 @@ download_server <- function(id, clicked_point) {
           temporal_resolution = temporal_resolution
         ))
         
-        # Run the custom function
-        new_result <- download_chirps_data(start_date = start_date, end_date = end_date,
-                                           temporal_resolution = temporal_resolution,
-                                           lat = lat, lng = lng, buffer_size = 0.5)
-        # Store the terra object in reactive value
-        terra_data(new_result)
+        # Update status
+        status_msg("Status: Downloading CHIRPS data...")
+        
+        # Run the custom function with error handling
+        tryCatch({
+          new_result <- download_chirps_data(start_date = start_date, end_date = end_date,
+                                             temporal_resolution = temporal_resolution,
+                                             lat = lat, lng = lng, buffer_size = 0.5)
+          # Store the terra object in reactive value
+          terra_data(new_result)
+          
+          # Update status to ready
+          status_msg("Status: Data ready for download!")
+          data_ready(TRUE)
+          
+        }, error = function(e) {
+          status_msg(paste("Error:", e$message))
+          data_ready(FALSE)
+        })
+        
+      } else {
+        status_msg("Please click on a point on the map first.")
       }
     })
     
-    
+    # Render status message
+    output$status_message <- renderText({
+      status_msg()
+    })
     
     # Download handler
     output$download_data <- downloadHandler(
@@ -107,6 +127,13 @@ download_server <- function(id, clicked_point) {
         paste("chirps_data_", Sys.Date(), ".csv", sep = "")
       },
       content = function(file) {
+        
+        # Check if data is ready
+        if (!data_ready()) {
+          write.csv(data.frame(Message = "Data not ready. Please prepare data first."), 
+                    file, row.names = FALSE)
+          return()
+        }
         
         # Get the terra object and parameters
         terra_obj <- terra_data()  # Call as function to get actual object
